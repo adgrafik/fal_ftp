@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2012-06-13T20:22:32Z" product-name="fal_ftp">
+		<header/>
+		<body>
+			<!-- tt_content fields -->
+			<trans-unit id="host" xml:space="preserve">
+				<source>Host</source>
+			</trans-unit>
+			<trans-unit id="username" xml:space="preserve">
+				<source>Username</source>
+			</trans-unit>
+			<trans-unit id="password" xml:space="preserve">
+				<source>Password</source>
+			</trans-unit>
+			<trans-unit id="basePath" xml:space="preserve">
+				<source>Base Path</source>
+			</trans-unit>
+			<trans-unit id="port" xml:space="preserve">
+				<source>Port</source>
+			</trans-unit>
+			<trans-unit id="mode" xml:space="preserve">
+				<source>Connection Mode</source>
+			</trans-unit>
+			<trans-unit id="mode.passiv" xml:space="preserve">
+				<source>Passiv</source>
+			</trans-unit>
+			<trans-unit id="mode.active" xml:space="preserve">
+				<source>Active</source>
+			</trans-unit>
+			<trans-unit id="publicUrl" xml:space="preserve">
+				<source>Public URL</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
