@@ -1,9 +1,9 @@
 <?php
 
 /***************************************************************
- * Extension Manager/Repository config file for ext "adx_resource_driver".
+ * Extension Manager/Repository config file for ext "fal_ftp".
  *
- * Auto generated 03-02-2014 16:12
+ * Auto generated 15-08-2014 17:19
  *
  * Manual updates:
  * Only the data in the array - everything else is removed by next
@@ -11,11 +11,11 @@
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = array (
-	'title' => 'FTP driver for FAL',
-	'description' => 'Provides a FTP driver for the TYPO3 File Abstraction Layer.',
+	'title' => 'FAL FTP Driver',
+	'description' => 'Provides a FTP driver for the TYPO3 File Abstraction Layer (FAL) to manipulating files via filemanager (filelist).',
 	'category' => 'plugin',
 	'shy' => 0,
-	'version' => '0.0.0',
+	'version' => '1.0.0',
 	'dependencies' => 'cms,version',
 	'conflicts' => '',
 	'priority' => '',
