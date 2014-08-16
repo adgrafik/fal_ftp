@@ -11,4 +11,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['fal_ftp/Classes/Hook/ListParser.php']
 	5 => 'AdGrafik\\FalFtp\\Hook\\ListParser->parseTitanRules',
 );
 
+$registry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Resource\\Driver\\DriverRegistry');
+$registry->registerDriverClass(
+	'AdGrafik\\FalFtp\\FTPDriver',
+	'FTP',
+	'FTP filesystem',
+	'FILE:EXT:fal_ftp/Configuration/FlexForm/FTPDriverFlexForm.xml'
+);
+
 ?>
