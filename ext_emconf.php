@@ -2,6 +2,12 @@
 
 /***************************************************************
  * Extension Manager/Repository config file for ext "fal_ftp".
+ *
+ * Auto generated 16-08-2014 10:47
+ *
+ * Manual updates:
+ * Only the data in the array - everything else is removed by next
+ * writing. "version" and "dependencies" must not be touched!
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = array (
@@ -9,7 +15,7 @@ $EM_CONF[$_EXTKEY] = array (
 	'description' => 'Provides a FTP driver for the TYPO3 File Abstraction Layer.',
 	'category' => 'plugin',
 	'shy' => 0,
-	'version' => '1.1.0',
+	'version' => '1.1.1',
 	'dependencies' => 'cms,version',
 	'conflicts' => '',
 	'priority' => '',
