@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2012-06-13T20:22:32Z" product-name="fal_ftp">
+		<header/>
+		<body>
+			<!-- tt_content fields -->
+			<trans-unit id="ftpDriver.timeout" xml:space="preserve">
+				<source>Timeout: Sets the timeout limit of the FTP requests.</source>
+			</trans-unit>
+			<trans-unit id="ftpDriver.createThumbnailsUpToSize" xml:space="preserve">
+				<source>Limit Thumbnail Rendering: This option can be used to reduce file rendering in the backend. Usually if a thumbnail is created it have to be downloaded first, generated and then uploaded again. With this option it'p possible to define a maximum file size where thumbnails created. If set a local image will be taken as placeholder. Set this option to "0" will deactivate this function.</source>
+			</trans-unit>
+			<trans-unit id="ftpDriver.defaultThumbnail" xml:space="preserve">
+				<source>Default Thumbnail: Path to thumbnail image which is displayed when "Limit Thumbnail Rendering" is set.</source>
+			</trans-unit>
+			<trans-unit id="ftpDriver.exactModificationTime" xml:space="preserve">
+				<source>Enable Real Modification Time: By default the modification time is generated at listing and depends on what FTP server returns. Usually this is enough information. If this feature ist set, the modification time is fetched by the function ftp_mdtm and overwrite the time of the list if it is available. But not all servers support this feature and it will slow down the file listing.</source>
+			</trans-unit>
+			<trans-unit id="remoteService" xml:space="preserve">
+				<source>Enable Remote Service: If this option is set, a service file is uploaded to the FTP server which handles some operations over the public URL, to avoid too much downloading. $TYPO3_CONF_VARS['SYS']['curlUse'] must be set.</source>
+			</trans-unit>
+			<trans-unit id="remoteService.encryptionKey" xml:space="preserve">
+				<source>Encryption Key: Individual encryption key for communication with the remote service. By default the encryption key of the TYPO3 installation is used.</source>
+			</trans-unit>
+			<trans-unit id="remoteService.fileName" xml:space="preserve">
+				<source>File Name: The remote service file name. Hidden files (with a dot at beginning) will not be listed in the filemanager.</source>
+			</trans-unit>
+			<trans-unit id="remoteService.additionalHeaders" xml:space="preserve">
+				<source>Additional Headers: Additional header to send with cURL seperated with semicolon. Can be used to send an authentication.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
