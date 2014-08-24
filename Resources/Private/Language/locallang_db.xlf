@@ -19,13 +19,13 @@
 			<trans-unit id="port" xml:space="preserve">
 				<source>Port</source>
 			</trans-unit>
-			<trans-unit id="mode" xml:space="preserve">
+			<trans-unit id="passiveMode" xml:space="preserve">
 				<source>Connection Mode</source>
 			</trans-unit>
-			<trans-unit id="mode.passiv" xml:space="preserve">
-				<source>Passiv</source>
+			<trans-unit id="passiveMode.passive" xml:space="preserve">
+				<source>Passive</source>
 			</trans-unit>
-			<trans-unit id="mode.active" xml:space="preserve">
+			<trans-unit id="passiveMode.active" xml:space="preserve">
 				<source>Active</source>
 			</trans-unit>
 			<trans-unit id="publicUrl" xml:space="preserve">

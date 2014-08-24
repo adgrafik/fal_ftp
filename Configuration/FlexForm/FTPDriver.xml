@@ -54,25 +54,25 @@
 					</config>
 				</TCEforms>
 			</port>
-			<mode>
+			<passiveMode>
 				<TCEforms>
-					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:mode</label>
+					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:passiveMode</label>
 					<config>
 						<type>select</type>
 						<items type="array">
 							<numIndex index="0" type="array">
-								<numIndex index="0">LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:mode.passiv</numIndex>
-								<numIndex index="1">passiv</numIndex>
+								<numIndex index="0">LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:passiveMode.passive</numIndex>
+								<numIndex index="1">1</numIndex>
 							</numIndex>
 							<numIndex index="1" type="array">
-								<numIndex index="0">LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:mode.active</numIndex>
-								<numIndex index="1">active</numIndex>
+								<numIndex index="0">LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:passiveMode.active</numIndex>
+								<numIndex index="1">0</numIndex>
 							</numIndex>
 						</items>
-						<default>passiv</default>
+						<default>1</default>
 					</config>
 				</TCEforms>
-			</mode>
+			</passiveMode>
             <publicUrl>
                 <TCEforms>
                     <label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:publicUrl</label>
