@@ -225,11 +225,17 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 		}
 
 		// Connect to FTP server.
-		try {
-			$this->ftpClient = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FTP', $this->configuration)
-				 ->connect($this->configuration['username'], $this->configuration['password'], $this->configuration['ssl']);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception $exception) {
-			$this->addFlashMessage('FTP error: ' . $exception->getMessage());
+		$this->ftpClient = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FTP', $this->configuration);
+		$registryObject = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Registry::class);
+		$storageIdentifier = 'sys_file_storage-' . $this->storageUid . '-' . sha1(serialize($this->configuration)) . '-fal_ftp-configuration-check';
+		$configurationChecked = $registryObject->get('fal_ftp', $storageIdentifier, 0);
+		if (!$configurationChecked) {
+			try {
+				$this->ftpClient->connect();
+				$registryObject->set('fal_ftp', $storageIdentifier, 1);
+			} catch (\AdGrafik\FalFtp\FTPClient\Exception $exception) {
+				$this->addFlashMessage('FTP error: ' . $exception->getMessage());
+			}
 		}
 	}
 
