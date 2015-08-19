@@ -357,18 +357,60 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 	}
 
 	/**
+	 * Returns the identifier of a folder inside the folder
+	 *
+	 * @param string $folderName The name of the target folder
+	 * @param string $folderIdentifier
+	 * @return string folder identifier
+	 */
+	public function getFolderInFolder($folderName, $folderIdentifier) {
+		return $folderIdentifier . $folderName;
+	}
+
+	/**
 	 * Returns a list of folders inside the specified path
 	 *
 	 * @param string $folderIdentifier
-	 * @param integer $start
-	 * @param integer $numberOfItems
-	 * @param boolean $recursive
-	 * @param array $folderNameFilterCallbacks The method callbacks to use for filtering the items
-	 *
+	 * @param int $start
+	 * @param int $numberOfItems
+	 * @param bool $recursive
+	 * @param array $folderNameFilterCallbacks callbacks for filtering the items
+	 * @param string $sort Property name used to sort the items.
+	 *                     Among them may be: '' (empty, no sorting), name,
+	 *                     fileext, size, tstamp and rw.
+	 *                     If a driver does not support the given property, it
+	 *                     should fall back to "name".
+	 * @param bool $sortRev TRUE to indicate reverse sorting (last to first)
 	 * @return array of Folder Identifier
 	 */
-	public function getFoldersInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $folderNameFilterCallbacks = array()) {
+	public function getFoldersInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $folderNameFilterCallbacks = array(), $sort = '', $sortRev = FALSE) {
 		return $this->getDirectoryItemList($folderIdentifier, $start, $numberOfItems, $folderNameFilterCallbacks, FALSE, TRUE, $recursive);
+	}
+
+	/**
+	 * Returns the number of files inside the specified path
+	 *
+	 * @param string  $folderIdentifier
+	 * @param bool $recursive
+	 * @param array   $filenameFilterCallbacks callbacks for filtering the items
+	 * @return int Number of files in folder
+	 * @throws \RuntimeException
+	 */
+	public function countFilesInFolder($folderIdentifier, $recursive = FALSE, array $filenameFilterCallbacks = array()) {
+		return count($this->getDirectoryItemList($folderIdentifier, 0, 0, $filenameFilterCallbacks, TRUE, FALSE, $recursive));
+	}
+
+	/**
+	 * Returns the number of folders inside the specified path
+	 *
+	 * @param string  $folderIdentifier
+	 * @param bool $recursive
+	 * @param array   $folderNameFilterCallbacks callbacks for filtering the items
+	 * @return int Number of folders in folder
+	 * @throws \RuntimeException
+	 */
+	public function countFoldersInFolder($folderIdentifier, $recursive = FALSE, array $folderNameFilterCallbacks = array()) {
+		return count($this->getDirectoryItemList($folderIdentifier, 0, 0, $folderNameFilterCallbacks, FALSE, TRUE, $recursive));
 	}
 
 	/**
@@ -545,16 +587,33 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 	}
 
 	/**
+	 * Returns the identifier of a file inside the folder
+	 *
+	 * @param string $fileName
+	 * @param string $folderIdentifier
+	 * @return string file identifier
+	 */
+	public function getFileInFolder($fileName, $folderIdentifier) {
+		return $folderIdentifier . $fileName;
+	}
+
+	/**
 	 * Returns a list of files inside the specified path
 	 *
 	 * @param string $folderIdentifier
-	 * @param integer $start
-	 * @param integer $numberOfItems
-	 * @param boolean $recursive
-	 * @param array $filenameFilterCallbacks The method callbacks to use for filtering the items
+	 * @param int $start
+	 * @param int $numberOfItems
+	 * @param bool $recursive
+	 * @param array $filenameFilterCallbacks callbacks for filtering the items
+	 * @param string $sort Property name used to sort the items.
+	 *                     Among them may be: '' (empty, no sorting), name,
+	 *                     fileext, size, tstamp and rw.
+	 *                     If a driver does not support the given property, it
+	 *                     should fall back to "name".
+	 * @param bool $sortRev TRUE to indicate reverse sorting (last to first)
 	 * @return array of FileIdentifiers
 	 */
-	public function getFilesInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $filenameFilterCallbacks = array()) {
+	public function getFilesInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $filenameFilterCallbacks = array(), $sort = '', $sortRev = FALSE) {
 		return $this->getDirectoryItemList($folderIdentifier, $start, $numberOfItems, $filenameFilterCallbacks, TRUE, FALSE, $recursive);
 	}
 
