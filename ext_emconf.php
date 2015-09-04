@@ -15,7 +15,7 @@ $EM_CONF[$_EXTKEY] = array (
 	'description' => 'Provides a FTP and FTP-SSL driver for the TYPO3 File Abstraction Layer (FAL) to manage files via filemanager (filelist).',
 	'category' => 'plugin',
 	'shy' => 0,
-	'version' => '1.1.2',
+	'version' => '1.2.0',
 	'dependencies' => 'cms,version',
 	'conflicts' => '',
 	'priority' => '',
@@ -39,7 +39,7 @@ $EM_CONF[$_EXTKEY] = array (
 			'cms' => '',
 			'version' => '',
 			'php' => '5.3.3-0.0.0',
-			'typo3' => '6.2.0-6.2.99',
+			'typo3' => '7.0.0-7.3.99',
 		),
 		'conflicts' => 
 		array (
