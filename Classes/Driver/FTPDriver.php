@@ -27,8 +27,9 @@ namespace AdGrafik\FalFtp\Driver;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use \TYPO3\CMS\Core\Utility\PathUtility;
-use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Resource\StorageRepository;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 
 class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFilesystemDriver {
 
@@ -289,7 +290,16 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 	public function getDefaultFolder() {
 		$folderIdentifier = '/user_upload/';
 		if ($this->folderExists($folderIdentifier) === FALSE) {
-			$folderIdentifier = $this->createFolder('user_upload', '/');
+			try {
+				$folderIdentifier = $this->createFolder('user_upload', '/');
+			} catch (\RuntimeException $e) {
+				/** @var StorageRepository $storageRepository */
+				$storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
+				$storage = $storageRepository->findByUid($this->storageUid);
+				if ($storage->isWritable()) {
+					throw $e;
+				}
+			}
 		}
 		return $folderIdentifier;
 	}
