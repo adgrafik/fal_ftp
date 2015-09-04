@@ -294,7 +294,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 				$folderIdentifier = $this->createFolder('user_upload', '/');
 			} catch (\RuntimeException $e) {
 				/** @var StorageRepository $storageRepository */
-				$storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
+				$storageRepository = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Resource\\StorageRepository');
 				$storage = $storageRepository->findByUid($this->storageUid);
 				if ($storage->isWritable()) {
 					throw $e;
