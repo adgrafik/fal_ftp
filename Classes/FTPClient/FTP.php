@@ -56,6 +56,11 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	const TRANSFER_BINARY = FTP_BINARY;
 
 	/**
+	 * @var bool
+	 */
+	protected $isConnected = FALSE;
+
+	/**
 	 * @var string $host
 	 */
 	protected $host;
@@ -64,6 +69,21 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @var integer $port
 	 */
 	protected $port;
+
+	/**
+	 * @var string
+	 */
+	protected $username;
+
+	/**
+	 * @var string
+	 */
+	protected $password;
+
+	/**
+	 * @var bool
+	 */
+	protected $ssl;
 
 	/**
 	 * @var integer $timeout
@@ -114,6 +134,9 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 
 		$this->host = urldecode(trim($settings['host'], '/') ?: '');
 		$this->port = (integer) $settings['port'] ?: 21;
+		$this->username = $settings['username'];
+		$this->password = $settings['password'];
+		$this->ssl = (bool)$settings['ssl'];
 		$this->timeout = (integer) $settings['timeout'] ?: 90;
 		$this->passiveMode = isset($settings['passiveMode']) ? (boolean) $settings['passiveMode'] : self::MODE_PASSIV;
 		$this->transferMode = isset($settings['transferMode']) ? $settings['transferMode'] : self::TRANSFER_BINARY;
@@ -125,13 +148,15 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @param boolean $ssl
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\InvalidConfigurationException
 	 */
-	public function connect($username = '', $password = '', $ssl = FALSE) {
+	public function connect($username = '', $password = '') {
+		if ($this->isConnected) {
+			return $this;
+		}
 
-		$this->stream = $ssl
+		$this->stream = $this->ssl
 			? @ftp_ssl_connect($this->host, $this->port, $this->timeout)
 			: @ftp_connect($this->host, $this->port, $this->timeout);
 
@@ -139,9 +164,16 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 			throw new Exception\InvalidConfigurationException('Couldn\'t connect to host "' . $this->host . ':' . $this->port . '".', 1408550516);
 		}
 
-		if ($username) {
-			$this->login($username, $password)->setPassiveMode($this->passiveMode);
+		$this->isConnected = TRUE;
+
+		if (!empty($username)) {
+			$this->username = $username;
+			$this->password = $password;
 		}
+		if ($this->username) {
+			$this->login($this->username, $this->password)->setPassiveMode($this->passiveMode);
+		}
+
 
 		return $this;
 	}
@@ -149,11 +181,11 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	/**
 	 * Close the FTP connection.
 	 *
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\InvalidConfigurationException
 	 */
 	public function disconnect() {
-		$result = @ftp_close($this->stream);
+		$result = @ftp_close($this->getStream());
 		if ($result === FALSE) {
 			throw new Exception\InvalidConfigurationException('Closeing connection faild.', 1408550517);
 		}
@@ -165,7 +197,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\InvalidConfigurationException
 	 */
 	public function login($username = '', $password = '') {
@@ -173,7 +205,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 		$username = $username ? urldecode($username) : 'anonymous';
 		$password = $password ? urldecode($password) : '';
 
-		$result = @ftp_login($this->stream, $username, $password);
+		$result = @ftp_login($this->getStream(), $username, $password);
 		if ($result === FALSE) {
 			throw new Exception\InvalidConfigurationException('Couldn\'t connect with username "' . $this->username . '".', 1408550518);
 		}
@@ -184,11 +216,11 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * Turns passive mode on or off.
 	 *
 	 * @param boolean $passiveMode
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
 	public function setPassiveMode($passiveMode) {
-		$result = @ftp_pasv($this->stream, $this->passiveMode);
+		$result = @ftp_pasv($this->getStream(), $this->passiveMode);
 		if ($result === FALSE) {
 			throw new Exception\FTPConnectionException('Setting passive mode faild.', 1408550519);
 		}
@@ -217,7 +249,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
 	public function getModificationTime($resource) {
-		$result = @ftp_mdtm($this->stream, $this->getAbsolutePath($resource));
+		$result = @ftp_mdtm($this->getStream(), $this->getAbsolutePath($resource));
 		if ($result === -1) {
 			throw new Exception\FTPConnectionException('Getting modification time of resource "' . $resource . '" failed.', 1408550520);
 		}
@@ -230,7 +262,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceResource Source remote directory or file, relative path from basePath.
 	 * @param string $targetResource Target remote directory or file, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
@@ -240,7 +272,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 			throw new Exception\ExistingResourceException('Resource "' . $sourceResource . '" already exists.', 1408550521);
 		}
 
-		$result = @ftp_rename($this->stream, $this->getAbsolutePath($sourceResource), $this->getAbsolutePath($targetResource));
+		$result = @ftp_rename($this->getStream(), $this->getAbsolutePath($sourceResource), $this->getAbsolutePath($targetResource));
 		if ($result === FALSE) {
 			throw new Exception\FTPConnectionException('Renaming resource "' . $sourceResource . '" to "' . $targetResource . '" failed.', 1408550522);
 		}
@@ -255,7 +287,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @return boolean
 	 */
 	public function directoryExists($directory) {
-		$result = @ftp_chdir($this->stream, $this->getAbsolutePath($directory));
+		$result = @ftp_chdir($this->getStream(), $this->getAbsolutePath($directory));
 		return $result;
 	}
 
@@ -263,11 +295,12 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * Changes the current directory to the specified one.
 	 *
 	 * @param string $directory Remote directory, relative path from basePath.
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\InvalidDirectoryException
 	 */
 	public function changeDirectory($directory) {
-		$result = @ftp_chdir($this->stream, $this->getAbsolutePath($directory));
+
+		$result = @ftp_chdir($this->getStream(), $this->getAbsolutePath($directory));
 		if ($result === FALSE) {
 			throw new Exception\InvalidDirectoryException('Changing directory "' . $directory . '" faild.', 1408550523);
 		}
@@ -278,11 +311,11 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * Changes the current directory to the parent directory.
 	 *
 	 * @param string $directory Remote directory, relative path from basePath.
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\InvalidDirectoryException
 	 */
 	public function changeToParentDirectory($directory) {
-		$result = @ftp_cdup($this->stream);
+		$result = @ftp_cdup($this->getStream());
 		if ($result === FALSE) {
 			throw new Exception\InvalidDirectoryException('Changing to parent directory from "' . $directory . '" faild.', 1408550524);
 		}
@@ -293,11 +326,11 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * Creates a directory.
 	 *
 	 * @param string $directory Remote directory, relative path from basePath.
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
 	public function createDirectory($directory) {
-		$result = @ftp_mkdir($this->stream, $this->getAbsolutePath($directory));
+		$result = @ftp_mkdir($this->getStream(), $this->getAbsolutePath($directory));
 		if ($result === FALSE) {
 			throw new Exception\FTPConnectionException('Creating directory "' . $directory . '" faild.', 1408550525);
 		}
@@ -311,7 +344,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceDirectory Source remote directory, relative path from basePath.
 	 * @param string $targetDirectory Target remote directory, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 */
 	public function renameDirectory($sourceDirectory, $targetDirectory, $overwrite = FALSE) {
 		return $this->renameResource($sourceDirectory, $targetDirectory, $overwrite);
@@ -324,7 +357,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceDirectory Source remote directory, relative path from basePath.
 	 * @param string $targetDirectory Target remote directory, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 */
 	public function moveDirectory($sourceDirectory, $targetDirectory, $overwrite = FALSE) {
 		return $this->renameResource($sourceDirectory, $targetDirectory, $overwrite);
@@ -336,7 +369,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceDirectory Source remote directory, relative path from basePath.
 	 * @param string $targetDirectory Target remote directory, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException
 	 */
 	public function copyDirectory($sourceDirectory, $targetDirectory, $overwrite = FALSE) {
@@ -365,7 +398,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 *
 	 * @param string $directory Remote directory, relative path from basePath.
 	 * @param boolean $recursively
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
 	public function deleteDirectory($directory, $recursively = TRUE) {
@@ -386,7 +419,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 		$parentDirectory = $this->getParentDirectory($directory);
 		$this->changeDirectory($parentDirectory);
 
-		$result = @ftp_rmdir($this->stream, $this->getResourceName($directory));
+		$result = @ftp_rmdir($this->getStream(), $this->getResourceName($directory));
 		if ($result === FALSE) {
 			throw new Exception\FTPConnectionException('Deleting directory ' . $directory . ' failed.', 1408550527);
 		}
@@ -401,7 +434,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @return boolean
 	 */
 	public function fileExists($file) {
-		$result = @ftp_size($this->stream, $this->getAbsolutePath($file));
+		$result = @ftp_size($this->getStream(), $this->getAbsolutePath($file));
 		return ($result !== -1);
 	}
 
@@ -413,7 +446,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FileOperationErrorException
 	 */
 	public function getFileSize($file) {
-		$result = @ftp_size($this->stream, $this->getAbsolutePath($file));
+		$result = @ftp_size($this->getStream(), $this->getAbsolutePath($file));
 		if ($result === -1) {
 			throw new Exception\FileOperationErrorException('Fetching file size of "' . $file . '" faild.', 1408550528);
 		}
@@ -426,7 +459,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $targetFile Target remote file, relative path from basePath.
 	 * @param mixed $sourceFileOrResource Local source file or file resource, absolute path.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
@@ -443,9 +476,9 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 
 		if (is_resource($sourceFileOrResource)) {
 			rewind($sourceFileOrResource);
-			$result = @ftp_fput($this->stream, $this->getAbsolutePath($targetFile), $sourceFileOrResource, $this->transferMode);
+			$result = @ftp_fput($this->getStream(), $this->getAbsolutePath($targetFile), $sourceFileOrResource, $this->transferMode);
 		} else {
-			$result = @ftp_put($this->stream, $this->getAbsolutePath($targetFile), $sourceFileOrResource, $this->transferMode);
+			$result = @ftp_put($this->getStream(), $this->getAbsolutePath($targetFile), $sourceFileOrResource, $this->transferMode);
 		}
 
 		if ($result === FALSE) {
@@ -460,7 +493,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 *
 	 * @param string $sourceFile Target remote file, relative path from basePath.
 	 * @param mixed $targetFileOrResource Local target file or file resource, absolute path.
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
@@ -471,10 +504,10 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 		}
 
 		if (is_resource($targetFileOrResource)) {
-			$result = @ftp_fget($this->stream, $targetFileOrResource, $this->getAbsolutePath($sourceFile), $this->transferMode);
+			$result = @ftp_fget($this->getStream(), $targetFileOrResource, $this->getAbsolutePath($sourceFile), $this->transferMode);
 			rewind($targetFileOrResource);
 		} else {
-			$result = @ftp_get($this->stream, $targetFileOrResource, $this->getAbsolutePath($sourceFile), $this->transferMode);
+			$result = @ftp_get($this->getStream(), $targetFileOrResource, $this->getAbsolutePath($sourceFile), $this->transferMode);
 		}
 
 		if ($result === FALSE) {
@@ -536,7 +569,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 *
 	 * @param string $file Remote file, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
@@ -557,7 +590,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 *
 	 * @param string $targetFile Target remote file, relative path from basePath.
 	 * @param mixed $sourceFileOrResource Local source file or file resource, absolute path.
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 */
 	public function replaceFile($targetFile, $sourceFileOrResource) {
 		return $this->uploadFile($targetFile, $sourceFileOrResource, TRUE);
@@ -570,7 +603,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceFile Source remote file, relative path from basePath.
 	 * @param string $targetFile Target remote file, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 */
 	public function renameFile($sourceFile, $targetFile, $overwrite = FALSE) {
 		return $this->renameResource($sourceFile, $targetFile, $overwrite);
@@ -583,7 +616,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceFile Source remote file, relative path from basePath.
 	 * @param string $targetFile Target remote file, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 */
 	public function moveFile($sourceFile, $targetFile, $overwrite = FALSE) {
 		return $this->renameResource($sourceFile, $targetFile, $overwrite);
@@ -595,7 +628,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * @param string $sourceFile Source remote file, relative path from basePath.
 	 * @param string $targetFile Target remote file, relative path from basePath.
 	 * @param boolean $overwrite
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 */
 	public function copyFile($sourceFile, $targetFile, $overwrite = FALSE) {
 
@@ -613,11 +646,11 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 * Deletes a file on the FTP server.
 	 *
 	 * @param string $file Remote file, relative path from basePath.
-	 * @return \AdGrafik\FalFtp\FTPClient\FTPClient
+	 * @return \AdGrafik\FalFtp\FTPClient\FTP
 	 * @throws \AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException Thrown at FTP error.
 	 */
 	public function deleteFile($file) {
-		$result = @ftp_delete($this->stream, $this->getAbsolutePath($file));
+		$result = @ftp_delete($this->getStream(), $this->getAbsolutePath($file));
 		if ($result === FALSE) {
 			throw new Exception\FTPConnectionException('Deleting file "' . $file . '" faild.', 1408550537);
 		}
@@ -640,13 +673,13 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 		$this->changeDirectory($directory);
 
 		// The -a option is used to show the hidden files as well on some FTP servers.
-		$result = @ftp_rawlist($this->stream, '-a ');
+		$result = @ftp_rawlist($this->getStream(), '-a ');
 		if ($result === FALSE) {
 			throw new Exception\FTPConnectionException('Fetching directory "' . $directory . '" faild.', 1408550538);
 		}
 		// Some servers do not return anything when using -a, so in that case try again without the -a option.
 		if (sizeof($result) <= 1) {
-			$result = @ftp_rawlist($this->stream, '');
+			$result = @ftp_rawlist($this->getStream(), '');
 			if ($result === FALSE) {
 				throw new Exception\FTPConnectionException('Fetching directory "' . $directory . '" faild.', 1408550539);
 			}
