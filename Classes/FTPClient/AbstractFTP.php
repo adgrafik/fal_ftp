@@ -71,6 +71,7 @@ abstract class AbstractFTP implements \AdGrafik\FalFtp\FTPClient\FTPInterface {
 	 * @return resource
 	 */
 	public function getStream() {
+		$this->connect();
 		return $this->stream;
 	}
 
