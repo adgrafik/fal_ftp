@@ -227,7 +227,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		// Connect to FTP server.
 		$this->ftpClient = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FTP', $this->configuration);
-		$registryObject = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Registry::class);
+		$registryObject = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Registry');
 		$storageIdentifier = 'sys_file_storage-' . $this->storageUid . '-' . sha1(serialize($this->configuration)) . '-fal_ftp-configuration-check';
 		$configurationChecked = $registryObject->get('fal_ftp', $storageIdentifier, 0);
 		if (!$configurationChecked) {
