@@ -131,6 +131,9 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 				'AdGrafik\\FalFtp\\FTPClient\\Filter\\StringTotalFilter',
 			));
 		}
+		
+		$extractorRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Core\Resource\Index\ExtractorRegistry');
+        $extractorRegistry->registerExtractionService("AdGrafik\FalFtp\Extractor\ImageDimensionExtractor");
 
 		$this->host = urldecode(trim($settings['host'], '/') ?: '');
 		$this->port = (integer) $settings['port'] ?: 21;
