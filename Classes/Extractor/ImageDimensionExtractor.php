@@ -74,7 +74,7 @@ class ImageDimensionExtractor implements \TYPO3\CMS\Core\Resource\Index\Extracto
                 if(is_array($size) && $size[0]>0 && $size[1]>0){
                     return true;
                 }
-            }catch(Exception $e){
+            }catch(\Exception $e){
                 return false;
             }
         }
