@@ -147,7 +147,7 @@ class FTP extends AbstractFTP {
 		$this->port = (integer) $settings['port'] ?: 21;
 		$this->username = $settings['username'];
 		$this->password = $settings['password'];
-		$this->ssl = (bool)$settings['ssl'];
+		$this->ssl = (bool) $settings['ssl'];
 		$this->timeout = (integer) $settings['timeout'] ?: 90;
 		$this->passiveMode = isset($settings['passiveMode']) ? (boolean) $settings['passiveMode'] : self::MODE_PASSIV;
 		$this->transferMode = isset($settings['transferMode']) ? $settings['transferMode'] : self::TRANSFER_BINARY;

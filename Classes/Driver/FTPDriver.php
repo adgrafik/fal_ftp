@@ -47,6 +47,11 @@ class FTPDriver extends AbstractHierarchicalFilesystemDriver {
 	const UNSAFE_FILENAME_CHARACTER_EXPRESSION = '\\x00-\\x2C\\/\\x3A-\\x3F\\x5B-\\x60\\x7B-\\xBF';
 
 	/**
+	 * @var string $driverType
+	 */
+	protected $driverType;
+
+	/**
 	 * A list of all supported hash algorithms, written all lower case and
 	 * without any dashes etc. (e.g. sha1 instead of SHA-1)
 	 * Be sure to set this in inherited classes!
@@ -166,7 +171,7 @@ class FTPDriver extends AbstractHierarchicalFilesystemDriver {
 			ResourceStorage::CAPABILITY_PUBLIC |
 			ResourceStorage::CAPABILITY_WRITABLE;
 
-		// Get and set extension configuration.
+		$this->driverType = 'FTP';
 		$this->extensionConfiguration = (array) @unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fal_ftp']);
 		$this->directoryCache = array();
 		$this->temporaryFileStack = array();
@@ -222,21 +227,27 @@ class FTPDriver extends AbstractHierarchicalFilesystemDriver {
 			$this->addFlashMessage('cURL configuration is not activated. $GLOBALS[\'TYPO3_CONF_VARS\'][\'SYS\'][\'curlUse\']');
 		}
 
-		// Set driver configuration.
-		$this->basePath = '/' . trim($this->configuration['basePath'], '/');
-		$this->publicUrl = trim($this->configuration['publicUrl'], '/');
+		// Get driver provider.
+		$driverKey = $this->configuration['driverProvider'];
+		$driverProvider = isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['fal_ftp']['driverProvider'][$this->driverType][$driverKey])
+			? $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['fal_ftp']['driverProvider'][$this->driverType][$driverKey]
+			: $this->configuration;
 
-		$this->configuration['timeout'] = (integer) @$this->extensionConfiguration['ftpDriver.']['timeout'] ?: 90;
-		$this->configuration['ssl'] = (isset($this->configuration['ssl']) && $this->configuration['ssl']);
+		// Set driver configuration.
+		$this->basePath = '/' . trim($driverProvider['basePath'], '/');
+		$this->publicUrl = trim($driverProvider['publicUrl'], '/');
+		$this->configuration['ssl'] = ($this->driverType === 'FTPS');
+
+		$driverProvider['timeout'] = (integer) @$this->extensionConfiguration['ftpDriver.']['timeout'] ?: 90;
 		// Configuration parameter "mode" deprecated. Use passiveMode instead.
-		if (isset($this->configuration['mode']) && isset($this->configuration['passiveMode']) === FALSE) {
-			$this->configuration['passiveMode'] = ($this->configuration['mode'] === 'passiv');
+		if (isset($driverProvider['mode']) && isset($driverProvider['passiveMode']) === FALSE) {
+			$driverProvider['passiveMode'] = ($driverProvider['mode'] === 'passiv');
 		}
 
 		// Connect to FTP server.
-		$this->ftpClient = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FTP', $this->configuration);
+		$this->ftpClient = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FTP', $driverProvider);
 		$registryObject = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Registry');
-		$storageIdentifier = 'sys_file_storage-' . $this->storageUid . '-' . sha1(serialize($this->configuration)) . '-fal_ftp-configuration-check';
+		$storageIdentifier = 'sys_file_storage-' . $this->storageUid . '-' . sha1(serialize($driverProvider)) . '-fal_ftp-configuration-check';
 		$configurationChecked = $registryObject->get('fal_ftp', $storageIdentifier, 0);
 		if (!$configurationChecked) {
 			try {

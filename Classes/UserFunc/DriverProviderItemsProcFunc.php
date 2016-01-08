@@ -1,10 +1,10 @@
 <?php
-namespace AdGrafik\FalFtp\Driver;
+namespace AdGrafik\FalFtp\UserFunc;
 
 /***************************************************************
  * Copyright notice
  *
- * (c) 2014 Arno Dudek <webmaster@adgrafik.at>
+ * (c) 2014-2016 Arno Dudek <webmaster@adgrafik.at>
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,25 +31,29 @@ namespace AdGrafik\FalFtp\Driver;
 /**
  * Driver for FTPS clients.
  */
-class FTPSDriver extends FTPDriver {
-
-	/**
-	 * @return void
-	 */
-	public function __construct(array $configuration = array()) {
-		parent::__construct($configuration);
-		$this->driverType = 'FTPS';
-	}
+class DriverProviderItemsProcFunc {
 
 	/**
 	 * processes the configuration, should be overridden by subclasses
 	 *
+	 * @param array $parameters
+	 * @param mixed $parentObject
 	 * @return void
 	 */
-	public function processConfiguration() {
-		// Just set SSL option for the FTP client.
-		$this->configuration['ssl'] = TRUE;
-		parent::processConfiguration();
+	public function getItems($parameters, $parentObject) {
+		$driver = $parameters['row']['driver'];
+		// Nothing else to do if no configurations found.
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['fal_ftp']['driverProvider'][$driver]) === FALSE || count($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['fal_ftp']['driverProvider'][$driver]) === 0) {
+			return;
+		}
+		foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['fal_ftp']['driverProvider'][$driver] as $key => $configuration) {
+			$name = isset($configuration['name']) ? $configuration['name'] : $key;
+			$parameters['items'][] = array(
+				$name,
+				$key,
+				NULL
+			);
+		}
 	}
 }
 

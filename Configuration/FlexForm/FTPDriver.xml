@@ -6,9 +6,27 @@
 	<ROOT>
 		<type>array</type>
 		<el>
+            <driverProvider>
+                <TCEforms>
+                    <label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:driverProvider</label>
+                    <exclude>1</exclude>
+                    <onChange>reload</onChange>
+                    <config>
+                        <type>select</type>
+                        <itemsProcFunc>AdGrafik\FalFtp\UserFunc\DriverProviderItemsProcFunc->getItems</itemsProcFunc>
+                        <items type="array">
+                            <numIndex index="0" type="array">
+                                <numIndex index="0">LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:driverProvider.none</numIndex>
+                                <numIndex index="1"></numIndex>
+                            </numIndex>
+                        </items>
+                    </config>
+                </TCEforms>
+            </driverProvider>
 			<host>
 				<TCEforms>
 					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:host</label>
+					<displayCond>FIELD:driverProvider:=:</displayCond>
 					<config>
 						<type>input</type>
 						<size>30</size>
@@ -18,6 +36,7 @@
 			<username>
 				<TCEforms>
 					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:username</label>
+                    <displayCond>FIELD:driverProvider:=:</displayCond>
 					<config>
 						<type>input</type>
 						<size>30</size>
@@ -27,6 +46,7 @@
 			<password>
 				<TCEforms>
 					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:password</label>
+                    <displayCond>FIELD:driverProvider:=:</displayCond>
 					<config>
 						<type>input</type>
 						<size>30</size>
@@ -36,6 +56,7 @@
 			<basePath>
 				<TCEforms>
 					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:basePath</label>
+                    <displayCond>FIELD:driverProvider:=:</displayCond>
 					<config>
 						<type>input</type>
 						<size>30</size>
@@ -45,6 +66,7 @@
 			<port>
 				<TCEforms>
 					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:port</label>
+                    <displayCond>FIELD:driverProvider:=:</displayCond>
 					<config>
 						<type>input</type>
 						<default>21</default>
@@ -57,6 +79,7 @@
 			<passiveMode>
 				<TCEforms>
 					<label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:passiveMode</label>
+                    <displayCond>FIELD:driverProvider:=:</displayCond>
 					<config>
 						<type>select</type>
 						<items type="array">
@@ -76,6 +99,7 @@
             <publicUrl>
                 <TCEforms>
                     <label>LLL:EXT:fal_ftp/Resources/Private/Language/locallang_db.xlf:publicUrl</label>
+                    <displayCond>FIELD:driverProvider:=:</displayCond>
                     <config>
                         <type>input</type>
                         <default>http://</default>

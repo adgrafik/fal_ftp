@@ -4,6 +4,12 @@
 		<header/>
 		<body>
 			<!-- tt_content fields -->
+			<trans-unit id="driverProvider" xml:space="preserve">
+				<source>Preconfigured drivers</source>
+			</trans-unit>
+			<trans-unit id="driverProvider.none" xml:space="preserve">
+				<source>None</source>
+			</trans-unit>
 			<trans-unit id="host" xml:space="preserve">
 				<source>Host</source>
 			</trans-unit>
