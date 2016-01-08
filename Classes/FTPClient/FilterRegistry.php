@@ -31,8 +31,9 @@ namespace AdGrafik\FalFtp\FTPClient;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \TYPO3\CMS\Core\SingletonInterface;
 
-class FilterRegistry implements \TYPO3\CMS\Core\SingletonInterface {
+class FilterRegistry implements SingletonInterface {
 
 	/**
 	 * @var array<\AdGrafik\FalFtp\FTPClient\Filter\FilterInterface> $filter

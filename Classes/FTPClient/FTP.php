@@ -31,9 +31,17 @@ namespace AdGrafik\FalFtp\FTPClient;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \AdGrafik\FalFtp\FTPClient\AbstractFTP;
 use \AdGrafik\FalFtp\FTPClient\Exception;
 
-class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
+/**
+ * FTP client.
+ *
+ * @author Arno Dudek <webmaster@adgrafik.at>
+ * @author Jonas Temmen <jonas.temmen@artundweise.de>
+ */
+class FTP extends AbstractFTP {
 
 	/**
 	 * @var boolean
@@ -112,7 +120,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 	 */
 	public function __construct(array $settings) {
 
-		$this->parserRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\ParserRegistry');
+		$this->parserRegistry = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\ParserRegistry');
 		if ($this->parserRegistry->hasParser() === FALSE) {
 			$this->parserRegistry->registerParser(array(
 				'AdGrafik\\FalFtp\\FTPClient\\Parser\\StrictRulesParser',
@@ -124,13 +132,16 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 			));
 		}
 
-		$this->filterRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FilterRegistry');
+		$this->filterRegistry = GeneralUtility::makeInstance('AdGrafik\\FalFtp\\FTPClient\\FilterRegistry');
 		if ($this->filterRegistry->hasFilter() === FALSE) {
 			$this->filterRegistry->registerFilter(array(
 				'AdGrafik\\FalFtp\\FTPClient\\Filter\\DotsFilter',
 				'AdGrafik\\FalFtp\\FTPClient\\Filter\\StringTotalFilter',
 			));
 		}
+
+		$extractorRegistry = GeneralUtility::makeInstance('TYPO3\CMS\Core\Resource\Index\ExtractorRegistry');
+		$extractorRegistry->registerExtractionService("AdGrafik\FalFtp\Extractor\ImageDimensionExtractor");
 
 		$this->host = urldecode(trim($settings['host'], '/') ?: '');
 		$this->port = (integer) $settings['port'] ?: 21;
@@ -701,7 +712,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 			);
 
 			foreach ($this->parserRegistry->getParser() as $parserClass) {
-				$parserObject = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance($parserClass);
+				$parserObject = GeneralUtility::makeInstance($parserClass);
 				if ($parseResult = $parserObject->parse($resourceInfo, $resource, $this)) {
 					$resourceInfo['parseClass'] = $parserClass;
 					break;
@@ -714,7 +725,7 @@ class FTP extends \AdGrafik\FalFtp\FTPClient\AbstractFTP {
 			}
 
 			foreach ($this->filterRegistry->getFilter() as $filterClass) {
-				$filterObject = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance($filterClass);
+				$filterObject = GeneralUtility::makeInstance($filterClass);
 				if ($filterObject->filter($resourceInfo, $resource, $this)) {
 					continue 2;
 				}

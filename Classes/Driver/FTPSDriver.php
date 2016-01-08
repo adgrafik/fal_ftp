@@ -28,6 +28,9 @@ namespace AdGrafik\FalFtp\Driver;
  ***************************************************************/
 
 
+/**
+ * Driver for FTPS clients.
+ */
 class FTPSDriver extends FTPDriver {
 
 	/**

@@ -30,6 +30,9 @@ namespace AdGrafik\FalFtp\FTPClient\Parser;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \AdGrafik\FalFtp\FTPClient\Parser\ParserInterface;
+use \AdGrafik\FalFtp\FTPClient\FTPInterface;
+
 // This class scans an ftp_rawlist line string and returns its parts (name, size,...).
 // Adapted from net2ftp by David Gartner
 // @see https://www.net2ftp.com
@@ -100,7 +103,7 @@ namespace AdGrafik\FalFtp\FTPClient\Parser;
 // drwxrwx--- 1 owner group 512 Apr 15 13:32 images
 // -rw-rw---- 1 owner group 764 Apr 15 11:07 styles.css
 
-class TitanParser implements \AdGrafik\FalFtp\FTPClient\Parser\ParserInterface {
+class TitanParser implements ParserInterface {
 
 	/**
 	 * Parse the FTP result line.
@@ -110,7 +113,7 @@ class TitanParser implements \AdGrafik\FalFtp\FTPClient\Parser\ParserInterface {
 	 * @param \AdGrafik\FalFtp\FTPClient\FTPInterface $parentObject
 	 * @return boolean
 	 */
-	public function parse(&$resourceInfo, $resource, \AdGrafik\FalFtp\FTPClient\FTPInterface $parentObject) {
+	public function parse(&$resourceInfo, $resource, FTPInterface $parentObject) {
 
 		//                 dir/file permissions      number      owner             group             size         month        date       time        file
 #		Original regexp: '/([-dl])([rwxsStT-]{9})[ ]+([0-9]+)[ ]+([a-zA-Z0-9]+)[ ]+([a-zA-Z0-9]+)[ ]+([0-9]+)[ ]+([a-zA-Z]+[ ]+[0-9]+)[ ]+([0-9:]+)[ ](.*)/'

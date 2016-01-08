@@ -30,8 +30,10 @@ namespace AdGrafik\FalFtp\FTPClient\Filter;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \AdGrafik\FalFtp\FTPClient\Filter\FilterInterface;
+use \AdGrafik\FalFtp\FTPClient\FTPInterface;
 
-class StringTotalFilter implements \AdGrafik\FalFtp\FTPClient\Filter\FilterInterface {
+class StringTotalFilter implements FilterInterface {
 
 	/**
 	 * Filter the given resource info.
@@ -41,7 +43,7 @@ class StringTotalFilter implements \AdGrafik\FalFtp\FTPClient\Filter\FilterInter
 	 * @param \AdGrafik\FalFtp\FTPClient\FTPInterface $parentObject
 	 * @return boolean
 	 */
-	public function filter($resourceInfo, $resource, \AdGrafik\FalFtp\FTPClient\FTPInterface $parentObject) {
+	public function filter($resourceInfo, $resource, FTPInterface $parentObject) {
 		// Exclude the total line that some servers return
 		return (substr($resource, 0, 5) == 'total');
 	}
