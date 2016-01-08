@@ -27,6 +27,7 @@ namespace AdGrafik\FalFtp\FTPClient\Filter;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \AdGrafik\FalFtp\FTPClient\FTPInterface;
 
 interface FilterInterface {
 
@@ -38,7 +39,7 @@ interface FilterInterface {
 	 * @param \AdGrafik\FalFtp\FTPClient\FTPInterface $parentObject
 	 * @return boolean
 	 */
-	public function filter($resourceInfo, $resource, \AdGrafik\FalFtp\FTPClient\FTPInterface $parentObject);
+	public function filter($resourceInfo, $resource, FTPInterface $parentObject);
 
 }
 

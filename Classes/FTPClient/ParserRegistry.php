@@ -31,8 +31,9 @@ namespace AdGrafik\FalFtp\FTPClient;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \TYPO3\CMS\Core\SingletonInterface;
 
-class ParserRegistry implements \TYPO3\CMS\Core\SingletonInterface {
+class ParserRegistry implements SingletonInterface {
 
 	/**
 	 * @var array<\AdGrafik\FalFtp\FTPClient\Parser\ParserInterface> $parser

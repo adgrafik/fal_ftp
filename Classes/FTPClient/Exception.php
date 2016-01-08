@@ -23,10 +23,8 @@ namespace AdGrafik\FalFtp\FTPClient;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-/**
- * An exception when something is wrong with the configuration
- *
- */
+
+
 class Exception extends \TYPO3\CMS\Core\Exception {
 
 

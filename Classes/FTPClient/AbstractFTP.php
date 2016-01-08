@@ -29,8 +29,15 @@ namespace AdGrafik\FalFtp\FTPClient;
 
 use \TYPO3\CMS\Core\Utility\PathUtility;
 use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \AdGrafik\FalFtp\FTPClient\FTPInterface;
 
-abstract class AbstractFTP implements \AdGrafik\FalFtp\FTPClient\FTPInterface {
+/**
+ * Abstract driver for FTP clients.
+ *
+ * @author Arno Dudek <webmaster@adgrafik.at>
+ * @author Nicole Cordes <typo3@cordes.co>
+ */
+abstract class AbstractFTP implements FTPInterface {
 
 	/**
 	 * @var resource $stream

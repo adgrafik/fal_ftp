@@ -27,11 +27,19 @@ namespace AdGrafik\FalFtp\Driver;
  * This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use TYPO3\CMS\Core\Resource\StorageRepository;
+use TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFilesystemDriver;
+use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use \AdGrafik\FalFtp\FTPClient\Exception;
 
-class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFilesystemDriver {
+/**
+ * Driver for FTP clients.
+ *
+ * @author Arno Dudek <webmaster@adgrafik.at>
+ * @author Nicole Cordes <typo3@cordes.co>
+ */
+class FTPDriver extends AbstractHierarchicalFilesystemDriver {
 
 	/**
 	 * @var string
@@ -154,9 +162,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		// The capabilities default of this driver. See CAPABILITY_* constants for possible values
 		$this->capabilities =
-			\TYPO3\CMS\Core\Resource\ResourceStorage::CAPABILITY_BROWSABLE |
-			\TYPO3\CMS\Core\Resource\ResourceStorage::CAPABILITY_PUBLIC |
-			\TYPO3\CMS\Core\Resource\ResourceStorage::CAPABILITY_WRITABLE;
+			ResourceStorage::CAPABILITY_BROWSABLE |
+			ResourceStorage::CAPABILITY_PUBLIC |
+			ResourceStorage::CAPABILITY_WRITABLE;
 
 		// Get and set extension configuration.
 		$this->extensionConfiguration = (array) @unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fal_ftp']);
@@ -234,7 +242,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 			try {
 				$this->ftpClient->connect();
 				$registryObject->set('fal_ftp', $storageIdentifier, 1);
-			} catch (\AdGrafik\FalFtp\FTPClient\Exception $exception) {
+			} catch (Exception $exception) {
 				$this->addFlashMessage('FTP error: ' . $exception->getMessage());
 			}
 		}
@@ -373,18 +381,60 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 	}
 
 	/**
+	 * Returns the identifier of a folder inside the folder
+	 *
+	 * @param string $folderName The name of the target folder
+	 * @param string $folderIdentifier
+	 * @return string folder identifier
+	 */
+	public function getFolderInFolder($folderName, $folderIdentifier) {
+		return $folderIdentifier . $folderName;
+	}
+
+	/**
 	 * Returns a list of folders inside the specified path
 	 *
 	 * @param string $folderIdentifier
-	 * @param integer $start
-	 * @param integer $numberOfItems
-	 * @param boolean $recursive
-	 * @param array $folderNameFilterCallbacks The method callbacks to use for filtering the items
-	 *
+	 * @param int $start
+	 * @param int $numberOfItems
+	 * @param bool $recursive
+	 * @param array $folderNameFilterCallbacks callbacks for filtering the items
+	 * @param string $sort Property name used to sort the items.
+	 *                     Among them may be: '' (empty, no sorting), name,
+	 *                     fileext, size, tstamp and rw.
+	 *                     If a driver does not support the given property, it
+	 *                     should fall back to "name".
+	 * @param bool $sortRev TRUE to indicate reverse sorting (last to first)
 	 * @return array of Folder Identifier
 	 */
-	public function getFoldersInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $folderNameFilterCallbacks = array()) {
+	public function getFoldersInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $folderNameFilterCallbacks = array(), $sort = '', $sortRev = FALSE) {
 		return $this->getDirectoryItemList($folderIdentifier, $start, $numberOfItems, $folderNameFilterCallbacks, FALSE, TRUE, $recursive);
+	}
+
+	/**
+	 * Returns the number of files inside the specified path
+	 *
+	 * @param string  $folderIdentifier
+	 * @param bool $recursive
+	 * @param array   $filenameFilterCallbacks callbacks for filtering the items
+	 * @return int Number of files in folder
+	 * @throws \RuntimeException
+	 */
+	public function countFilesInFolder($folderIdentifier, $recursive = FALSE, array $filenameFilterCallbacks = array()) {
+		return count($this->getDirectoryItemList($folderIdentifier, 0, 0, $filenameFilterCallbacks, TRUE, FALSE, $recursive));
+	}
+
+	/**
+	 * Returns the number of folders inside the specified path
+	 *
+	 * @param string  $folderIdentifier
+	 * @param bool $recursive
+	 * @param array   $folderNameFilterCallbacks callbacks for filtering the items
+	 * @return int Number of folders in folder
+	 * @throws \RuntimeException
+	 */
+	public function countFoldersInFolder($folderIdentifier, $recursive = FALSE, array $folderNameFilterCallbacks = array()) {
+		return count($this->getDirectoryItemList($folderIdentifier, 0, 0, $folderNameFilterCallbacks, FALSE, TRUE, $recursive));
 	}
 
 	/**
@@ -404,7 +454,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->createDirectory($folderIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Creating folder "' . $folderIdentifier . '" faild.', 1408550550);
 		}
 
@@ -431,9 +481,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->renameDirectory($folderIdentifier, $newFolderIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException('Folder "' . $folderIdentifier . '" already exists.', 1408550551);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Renaming folder "' . $folderIdentifier . '" faild.', 1408550552);
 		}
 
@@ -451,7 +501,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 	public function deleteFolder($folderIdentifier, $recursively = FALSE) {
 		try {
 			$this->ftpClient->deleteDirectory($folderIdentifier, $recursively);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Deleting folder "' . $folderIdentifier . '" faild.', 1408550553);
 		}
 		return TRUE;
@@ -476,9 +526,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->moveDirectory($sourceFolderIdentifier, $newIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException('Folder "' . $newIdentifier . '" already exists.', 1408550554);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Moving folder "' . $sourceFolderIdentifier . '" faild.', 1408550555);
 		}
 
@@ -501,11 +551,11 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->copyDirectory($sourceFolderIdentifier, $targetIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException $exception) {
+		} catch (Exception\ResourceDoesNotExistException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException('Source folder "' . $sourceFolderIdentifier . '" not exists', 1408550556);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException('Target folder "' . $targetIdentifier . '" already exists', 1408550557);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Copying folder "' . $sourceFolderIdentifier . '" faild.', 1408550558);
 		}
 
@@ -561,16 +611,33 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 	}
 
 	/**
+	 * Returns the identifier of a file inside the folder
+	 *
+	 * @param string $fileName
+	 * @param string $folderIdentifier
+	 * @return string file identifier
+	 */
+	public function getFileInFolder($fileName, $folderIdentifier) {
+		return $folderIdentifier . $fileName;
+	}
+
+	/**
 	 * Returns a list of files inside the specified path
 	 *
 	 * @param string $folderIdentifier
-	 * @param integer $start
-	 * @param integer $numberOfItems
-	 * @param boolean $recursive
-	 * @param array $filenameFilterCallbacks The method callbacks to use for filtering the items
+	 * @param int $start
+	 * @param int $numberOfItems
+	 * @param bool $recursive
+	 * @param array $filenameFilterCallbacks callbacks for filtering the items
+	 * @param string $sort Property name used to sort the items.
+	 *                     Among them may be: '' (empty, no sorting), name,
+	 *                     fileext, size, tstamp and rw.
+	 *                     If a driver does not support the given property, it
+	 *                     should fall back to "name".
+	 * @param bool $sortRev TRUE to indicate reverse sorting (last to first)
 	 * @return array of FileIdentifiers
 	 */
-	public function getFilesInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $filenameFilterCallbacks = array()) {
+	public function getFilesInFolder($folderIdentifier, $start = 0, $numberOfItems = 0, $recursive = FALSE, array $filenameFilterCallbacks = array(), $sort = '', $sortRev = FALSE) {
 		return $this->getDirectoryItemList($folderIdentifier, $start, $numberOfItems, $filenameFilterCallbacks, TRUE, FALSE, $recursive);
 	}
 
@@ -595,11 +662,11 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->uploadFile($newFileIdentifier, $localFilePath);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException $exception) {
+		} catch (Exception\ResourceDoesNotExistException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException('Source file "' . $localFilePath . '" not exists', 1408550561);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException('Target file "' . $newFileIdentifier . '" already exists', 1408550562);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Adding file "' . $newFileIdentifier . '" faild.', 1408550563);
 		}
 
@@ -632,9 +699,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->createFile($fileIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException('File "' . $fileIdentifier . '" already exists', 1408550565);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Creating file "' . $fileIdentifier . '" faild.', 1408550566);
 		}
 
@@ -656,9 +723,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->renameFile($fileIdentifier, $newFileIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException('File "' . $fileIdentifier . '" already exists', 1408550567);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Renaming file "' . $fileIdentifier . '" faild.', 1408550568);
 		}
 
@@ -678,9 +745,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->replaceFile($fileIdentifier, $localFilePath);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException $exception) {
+		} catch (Exception\ResourceDoesNotExistException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException('Source file "' . $localFilePath . '" not exists', 1408550569);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Replacing file "' . $fileIdentifier . '" faild.', 1408550570);
 		}
 
@@ -700,7 +767,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->deleteFile($fileIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Deleting file "' . $fileIdentifier . '" faild.', 1408550571);
 		}
 
@@ -719,7 +786,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$bytes = $this->ftpClient->setFileContents($fileIdentifier, $contents);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception $exception) {
+		} catch (Exception $exception) {
 			throw new \RuntimeException('Setting file contents of file "' . $fileIdentifier . '" faild.', 1408550572);
 		}
 
@@ -740,7 +807,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$contents = $this->ftpClient->getFileContents($fileIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception $exception) {
+		} catch (Exception $exception) {
 			throw new \RuntimeException('Setting file contents of file "' . $fileIdentifier . '" faild.', 1408550573);
 		}
 
@@ -773,9 +840,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->downloadFile($fileIdentifier, $temporaryFile);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException $exception) {
+		} catch (Exception\ResourceDoesNotExistException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException('Source file "' . $temporaryFile . '" not exists', 1408550574);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Copying file "' . $fileIdentifier . '" to temporary file faild.', 1408550575);
 		}
 
@@ -813,9 +880,9 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->moveFile($sourceFileIdentifier, $targetFileIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileException('File "' . $targetFileIdentifier . '" already exists.', 1408550576);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Moving file "' . $sourceFileIdentifier . '" faild.', 1408550577);
 		}
 
@@ -844,11 +911,11 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$this->ftpClient->copyFile($sourceFileIdentifier, $targetFileIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ResourceDoesNotExistException $exception) {
+		} catch (Exception\ResourceDoesNotExistException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException('Source file "' . $sourceFileIdentifier . '" not exists', 1408550578);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\ExistingResourceException $exception) {
+		} catch (Exception\ExistingResourceException $exception) {
 			throw new \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileException('Target file "' . $targetFileIdentifier . '" already exists', 1408550579);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+		} catch (Exception\FTPConnectionException $exception) {
 			throw new \RuntimeException('Copying file "' . $sourceFileIdentifier . '" faild.', 1408550580);
 		}
 
@@ -1111,7 +1178,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 		if ($this->exactModificationTime) {
 			try {
 				$resourceInfo['mtime'] = $this->ftpClient->getModificationTime($identifier);
-			} catch (\AdGrafik\FalFtp\FTPClient\Exception\FTPConnectionException $exception) {
+			} catch (Exception\FTPConnectionException $exception) {
 				// Ignore on failure.
 			}
 		}
@@ -1143,7 +1210,7 @@ class FTPDriver extends \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFile
 
 		try {
 			$directoryList = $this->ftpClient->fetchDirectoryList($oldIdentifier);
-		} catch (\AdGrafik\FalFtp\FTPClient\Exception $exception) {
+		} catch (Exception $exception) {
 			throw new \RuntimeException('Fetching list of directory "' . $oldIdentifier . '" faild.', 1408550584);
 		}
 
